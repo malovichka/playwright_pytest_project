@@ -1,29 +1,6 @@
 from pages.page_manager import PageManager
-from pages.checkout_info import CheckoutStepOne as c
 from pages import helpers as h
 import pytest
-
-checkout_data = h.get_info_for_checkout()
-negative_scenarios = [
-    (
-        checkout_data["first_name"],
-        checkout_data["last_name"],
-        "",
-        c.CHECKOUT_INFO_ERROR_MESSAGES["postcode_missing"],
-    ),
-    (
-        checkout_data["first_name"],
-        "",
-        checkout_data["postal_code"],
-        c.CHECKOUT_INFO_ERROR_MESSAGES["last_name_missing"],
-    ),
-    (
-        "",
-        checkout_data["last_name"],
-        checkout_data["postal_code"],
-        c.CHECKOUT_INFO_ERROR_MESSAGES["first_name_missing"],
-    ),
-]
 
 
 @pytest.mark.parametrize("items_count", range(1, 7))
@@ -66,6 +43,7 @@ def test_add_items_and_checkout(user: PageManager, items_count: int):
 
     user.cart.go_to_checkout()
     user.checkout_info.should_be_checkout_info_page()
+    checkout_data = h.get_info_for_checkout()
     user.checkout_info.fill_checkout_info(
         checkout_data["first_name"],
         checkout_data["last_name"],
@@ -90,17 +68,8 @@ def test_add_items_and_checkout(user: PageManager, items_count: int):
     )
 
 
-@pytest.mark.parametrize(
-    "first_name, last_name, postal_code, error_message",
-    negative_scenarios,
-    ids=["missing_zip", "missing_last", "missing_first"],
-)
 def test_checkout_stops_when_missing_data(
-    user: PageManager,
-    first_name: str,
-    last_name: str,
-    postal_code: str,
-    error_message: str,
+    user: PageManager, checkout_info_negative_scenario: tuple
 ):
     """
     Parametrized test (passing fields to fill and expected error message), covers 3 negative scenarios when provided checkout data is insufficient:
@@ -141,6 +110,7 @@ def test_checkout_stops_when_missing_data(
 
     user.cart.go_to_checkout()
     user.checkout_info.should_be_checkout_info_page()
+    first_name, last_name, postal_code, error_message = checkout_info_negative_scenario
     user.checkout_info.fill_checkout_info(first_name, last_name, postal_code)
     user.checkout_info.continue_to_checkout_review()
     user.checkout_info.should_be_checkout_info_error(error_message)

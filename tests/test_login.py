@@ -1,25 +1,4 @@
 from pages.page_manager import PageManager
-from pages.login_page import LoginPage
-from pages import helpers as h
-import pytest
-
-
-valid_username = h.get_env_var("STANDARD_USER_USERNAME")
-valid_password = h.get_env_var("STANDARD_USER_PASSWORD")
-negative_scenarios = [
-    (valid_username, "", LoginPage.LOGIN_ERROR_MESSAGES["no_password"]),
-    ("", valid_password, LoginPage.LOGIN_ERROR_MESSAGES["no_username"]),
-    (
-        valid_username + "1",
-        valid_password,
-        LoginPage.LOGIN_ERROR_MESSAGES["wrong_credentials"],
-    ),
-    (
-        valid_username,
-        valid_password + "1",
-        LoginPage.LOGIN_ERROR_MESSAGES["wrong_credentials"],
-    ),
-]
 
 
 def test_login_positive(app: PageManager):
@@ -38,8 +17,7 @@ def test_login_positive(app: PageManager):
     app.login.should_be_login_page()
 
 
-@pytest.mark.parametrize("username, password, error_message", negative_scenarios)
-def test_login_negative(app: PageManager, username, password, error_message):
+def test_login_negative(app: PageManager, login_negative_scenario: tuple):
     """
     Parametrized test (passing invalid credentials set and expected error message), covers 4 negative scenarios:
         - password is not provided
@@ -52,6 +30,7 @@ def test_login_negative(app: PageManager, username, password, error_message):
         2) Input invalid credentials and submit login
         3) Verify that login was failed - page URL not changed. Verify that error message text is displayed according to credentials mismatch
     """
+    username, password, error_message = login_negative_scenario
     app.login.load()
     app.login.login(username, password)
     app.login.should_be_login_page()
