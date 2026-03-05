@@ -1,2 +1,3 @@
 [tool.pytest.ini_options]
 addopts = "--tracing retain-on-failure"
+markers = ["new: for WIP tests", ]

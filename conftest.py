@@ -1,5 +1,6 @@
 from playwright.sync_api import Playwright
 from pages.page_manager import PageManager
+from typing import Generator
 import pytest
 import dotenv
 
@@ -25,6 +26,18 @@ def browser_type_launch_args(browser_type_launch_args) -> dict:
         "args": ["--start-maximized"],
     }
 
+
 @pytest.fixture(scope="function")
 def app(page) -> PageManager:
     return PageManager(page)
+
+
+@pytest.fixture(scope="function")
+def user(app: PageManager) -> Generator[PageManager, None, None]:
+    app.login.load()
+    app.login.login_as_standard_user()
+    app.inventory.header.reset_app_state()
+    yield app
+    app.inventory.header.reset_app_state()
+    app.inventory.header.logout()
+    app.login.should_be_login_page()
